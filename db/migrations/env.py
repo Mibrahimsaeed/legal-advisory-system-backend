@@ -13,7 +13,7 @@ from db.base import Base
 # for autogenerate. Add new imports as new feature modules gain models. ---
 from app.users.models import User  # noqa: F401
 from app.conversations.models import Conversation, Message  # noqa: F401
-# from app.documents.models import Document
+from app.documents.models import Document  # noqa: F401
 
 config = context.config
 settings = get_settings()

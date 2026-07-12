@@ -10,3 +10,7 @@ venv/
 dist/
 build/
 .DS_Store
+
+# Uploaded files - keep the folder structure, ignore actual uploads
+storage/documents/*
+!storage/documents/.gitkeep
