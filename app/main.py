@@ -60,7 +60,11 @@ def register_routers(app: FastAPI) -> None:
     Keeping this separate from create_app() keeps main.py readable
     as more routers get added in later phases.
     """
-    pass  # populated in Phase 2+
+    from app.auth.router import router as auth_router
+    from app.users.router import router as users_router
+
+    app.include_router(auth_router, prefix="/auth", tags=["auth"])
+    app.include_router(users_router, prefix="/users", tags=["users"])
 
 
 app = create_app()
