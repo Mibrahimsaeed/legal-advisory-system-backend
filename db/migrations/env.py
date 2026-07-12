@@ -12,7 +12,7 @@ from db.base import Base
 # --- Import every model module here so Base.metadata is fully populated
 # for autogenerate. Add new imports as new feature modules gain models. ---
 from app.users.models import User  # noqa: F401
-# from app.conversations.models import Conversation, Message
+from app.conversations.models import Conversation, Message  # noqa: F401
 # from app.documents.models import Document
 
 config = context.config
