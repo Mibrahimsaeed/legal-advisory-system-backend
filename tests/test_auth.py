@@ -26,7 +26,7 @@ async def test_register_duplicate_email_rejected(client, registered_user):
 
 
 async def test_register_short_password_rejected(client):
-    response = await client.post(
+    response = await client.post(     
         "/auth/register",
         json={"email": "shortpass@example.com", "password": "123"},
     )

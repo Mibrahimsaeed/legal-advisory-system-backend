@@ -31,7 +31,7 @@ from db.session import AsyncSessionLocal, engine  # noqa: E402
 from app.users.models import User  # noqa: E402, F401
 from app.conversations.models import Conversation, Message  # noqa: E402, F401
 from app.documents.models import Document  # noqa: E402, F401
-
+import pytest_asyncio
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def _create_test_schema():
