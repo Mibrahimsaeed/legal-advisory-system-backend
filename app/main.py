@@ -64,11 +64,13 @@ def register_routers(app: FastAPI) -> None:
     from app.users.router import router as users_router
     from app.conversations.router import router as conversations_router
     from app.documents.router import router as documents_router
+    from app.chat.router import router as chat_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(users_router, prefix="/users", tags=["users"])
     app.include_router(conversations_router, prefix="/conversations", tags=["conversations"])
     app.include_router(documents_router, prefix="/documents", tags=["documents"])
+    app.include_router(chat_router, prefix="/chat", tags=["chat"])
 
 
 app = create_app()
