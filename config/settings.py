@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     # File uploads
     max_upload_size_mb: int = 20
 
+    # CORS: comma-separated list of allowed frontend origins.
+    # "*" (default) is fine for development; set real domains in production,
+    # e.g. CORS_ORIGINS=https://myapp.com,https://www.myapp.com
+    cors_origins: str = "*"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",")]
+
 
 @lru_cache
 def get_settings() -> Settings:
