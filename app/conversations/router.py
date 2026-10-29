@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.pagination import PaginatedResponse, paginate_params
 from app.conversations import service
-from app.conversations.schemas import ConversationCreate, ConversationOut, MessageOut
+from app.conversations.schemas import (
+    ConversationCreate,
+    ConversationDetail,
+    ConversationOut,
+    MessageOut,
+)
 from app.dependencies import get_current_user, get_db
 from app.users.models import User
 
@@ -16,7 +21,14 @@ async def create_conversation(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await service.create_conversation(db, user.id, payload.title)
+    return await service.create_conversation(
+        db,
+        user.id,
+        payload.title,
+        payload.domain,
+        payload.archetype,
+        str(payload.id) if payload.id else None,
+    )
 
 
 @router.get("", response_model=PaginatedResponse[ConversationOut])
@@ -28,6 +40,24 @@ async def list_my_conversations(
 ):
     limit, offset = paginate_params(limit, offset)
     conversations, total = await service.list_conversations(db, user.id, limit, offset)
+    return PaginatedResponse(
+        items=conversations, total=total, limit=limit, offset=offset, has_more=offset + limit < total
+    )
+
+
+@router.get("/with-messages", response_model=PaginatedResponse[ConversationDetail])
+async def list_my_conversations_with_messages(
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Same as the plain list, but each conversation includes its messages
+    (one request instead of one per conversation, for the history sidebar)."""
+    limit, offset = paginate_params(limit, offset)
+    conversations, total = await service.list_conversations(
+        db, user.id, limit, offset, with_messages=True
+    )
     return PaginatedResponse(
         items=conversations, total=total, limit=limit, offset=offset, has_more=offset + limit < total
     )

@@ -32,6 +32,28 @@ class Settings(BaseSettings):
     # File uploads
     max_upload_size_mb: int = 20
 
+    # Case law data (the team's PakistanLawSite export). Put .json, .jsonl or
+    # .csv files in this folder. If it is empty, case law requests answer
+    # "not available" (cases are never invented).
+    case_law_data_dir: str = "data/case_law"
+
+    # Email (password reset). Leave SMTP_* empty in development: the code is
+    # then printed in the backend terminal instead of being emailed.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    email_from: str | None = None
+    password_reset_code_minutes: int = 15
+
+    # Google sign-in: comma-separated OAuth client IDs (web, android, ios)
+    # from Google Cloud Console. Empty = Google sign-in disabled.
+    google_client_ids: str = ""
+
+    @property
+    def google_client_ids_list(self) -> list[str]:
+        return [c.strip() for c in self.google_client_ids.split(",") if c.strip()]
+
     # CORS: comma-separated list of allowed frontend origins.
     # "*" (default) is fine for development; set real domains in production,
     # e.g. CORS_ORIGINS=https://myapp.com,https://www.myapp.com

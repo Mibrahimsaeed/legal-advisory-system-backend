@@ -88,12 +88,21 @@ def register_routers(app: FastAPI) -> None:
     from app.conversations.router import router as conversations_router
     from app.documents.router import router as documents_router
     from app.chat.router import router as chat_router
+    from app.admin.router import router as admin_router
+    from app.generated_docs.router import router as generated_docs_router
+    from app.billing.router import router as billing_router, usage_router
+    from app.rag.router import router as rag_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(users_router, prefix="/users", tags=["users"])
     app.include_router(conversations_router, prefix="/conversations", tags=["conversations"])
+    app.include_router(generated_docs_router, prefix="/documents/generated", tags=["generated documents"])
     app.include_router(documents_router, prefix="/documents", tags=["documents"])
     app.include_router(chat_router, prefix="/chat", tags=["chat"])
+    app.include_router(admin_router, prefix="/admin", tags=["admin"])
+    app.include_router(rag_router, prefix="/admin/rag", tags=["admin"])
+    app.include_router(billing_router, prefix="/billing", tags=["billing"])
+    app.include_router(usage_router, prefix="/usage", tags=["usage"])
 
 
 app = create_app()

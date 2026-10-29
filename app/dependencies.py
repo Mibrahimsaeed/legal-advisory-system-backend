@@ -13,7 +13,7 @@ from app.common.exceptions import UnauthorizedError
 from app.users.models import User
 from db.session import get_db  # re-exported: `from app.dependencies import get_db`
 
-__all__ = ["get_db", "get_current_user"]
+__all__ = ["get_db", "get_current_user", "get_current_admin"]
 
 _bearer_scheme = HTTPBearer()
 
@@ -50,3 +50,12 @@ async def get_current_user(
 
     return user
 
+
+
+async def get_current_admin(user: User = Depends(get_current_user)) -> User:
+    """Like get_current_user, but only lets admins through (dashboard routes)."""
+    from app.common.exceptions import ForbiddenError
+
+    if not user.is_admin:
+        raise ForbiddenError("Admin access only")
+    return user
