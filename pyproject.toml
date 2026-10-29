@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.7.0",
+    "email-validator>=2.0.0",  # needed by pydantic EmailStr
     "pydantic-settings>=2.3.0",
     "sqlalchemy[asyncio]>=2.0.30",
     "asyncpg>=0.29.0",
@@ -16,10 +17,14 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "redis>=5.0.0",
     "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.0.1,<5",  # passlib 1.7.4 breaks with bcrypt 5
     "python-jose[cryptography]>=3.3.0",
     "python-multipart>=0.0.9",
     "pypdf>=4.2.0",
     "python-docx>=1.1.0",
+    "reportlab>=4.0.0",
+    "google-auth>=2.29.0",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +36,7 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+pythonpath = ["."]  # lets plain `pytest` import app/, config/, db/ without installing the project
 
 [tool.setuptools.packages.find]
 include = ["app*", "config*", "db*"]

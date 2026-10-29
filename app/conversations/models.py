@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -21,6 +21,9 @@ class Conversation(Base):
     )
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True, nullable=False)
     title: Mapped[str] = mapped_column(String(255), default="New Conversation")
+    # Hints chosen in the web app: legal area and the kind of analysis asked for.
+    domain: Mapped[str] = mapped_column(String(20), default="general", server_default="general")
+    archetype: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -43,6 +46,8 @@ class Message(Base):
     )
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" | "assistant"
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    # Structured legal answer (camelCase JSON, see app/chat/answer.py). Assistant messages only.
+    answer: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

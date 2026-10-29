@@ -16,9 +16,7 @@ async def upload_document(
     db: AsyncSession = Depends(get_db),
 ):
     file_bytes = await file.read()
-    document = await service.upload_document(
-        db, user.id, file.filename, file.content_type, file_bytes
-    )
+    document = await service.upload_document(db, user.id, file.filename, file_bytes)
     return document
 
 

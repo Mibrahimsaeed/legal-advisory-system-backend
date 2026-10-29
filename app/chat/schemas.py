@@ -1,0 +1,30 @@
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.chat.answer import ArchetypeId, LegalAnswer, LegalDomain
+
+
+class ChatRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=4000)
+    document_ids: list[str] = Field(default_factory=list)
+    # Optional hints from the web app; stored on the conversation.
+    domain: LegalDomain | None = None
+    archetype: ArchetypeId | None = None
+
+
+class ChatResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    conversation_id: str
+    role: str
+    content: str
+    answer: LegalAnswer | None = None
+    created_at: datetime
+
+
+class StreamChunk(BaseModel):
+    """One chunk of a streamed response, sent over the WebSocket."""
+    delta: str
+    done: bool = False

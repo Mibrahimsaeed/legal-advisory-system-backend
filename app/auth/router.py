@@ -3,7 +3,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import service
 from app.auth.jwt import decode_token
-from app.auth.schemas import LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest, TokenResponse
+from app.auth.schemas import (
+    ForgotPasswordRequest,
+    GoogleLoginRequest,
+    LoginRequest,
+    LogoutRequest,
+    MessageResponse,
+    RefreshRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    TokenResponse,
+)
 from app.dependencies import get_db
 from app.users.schemas import UserProfile
 from jose import JWTError
@@ -46,3 +56,24 @@ async def logout(payload: LogoutRequest):
     else:
         _revoked_tokens.add(payload.refresh_token)
     return None
+
+
+@router.post("/forgot-password", response_model=MessageResponse)
+async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """Email a 6-digit reset code. Same answer whether or not the email exists."""
+    await service.request_password_reset(db, payload.email)
+    return MessageResponse(
+        message="If an account exists for this email, a reset code has been sent."
+    )
+
+
+@router.post("/reset-password", response_model=MessageResponse)
+async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    await service.reset_password(db, payload.email, payload.code, payload.new_password)
+    return MessageResponse(message="Your password has been changed. Please log in.")
+
+
+@router.post("/google", response_model=TokenResponse)
+async def login_with_google(payload: GoogleLoginRequest, db: AsyncSession = Depends(get_db)):
+    """Continue with Google: works for both sign up and log in."""
+    return await service.login_with_google(db, payload.id_token)

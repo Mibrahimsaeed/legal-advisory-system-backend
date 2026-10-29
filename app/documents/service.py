@@ -5,32 +5,29 @@ from app.common.exceptions import AppException, ForbiddenError, NotFoundError
 from app.common.storage_client import delete_file, upload_file
 from app.documents.models import Document, DocumentStatus
 from app.documents.parser import extract_text
-from config.constants import ALLOWED_DOCUMENT_MIME_TYPES
+from app.documents.file_types import detect_document_type
 from config.settings import get_settings
 from fastapi import status as http_status
 
 settings = get_settings()
 
 
-def validate_upload(filename: str, mime_type: str, size_bytes: int) -> None:
-    if mime_type not in ALLOWED_DOCUMENT_MIME_TYPES:
-        raise AppException(
-            http_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            f"File type '{mime_type}' isn't supported. Allowed types: PDF, DOCX, TXT.",
-        )
-
+def validate_upload(filename: str, file_bytes: bytes) -> str:
+    """Check size, extension and contents. Returns the file's real MIME type (the
+    client-supplied content-type is ignored: it can be faked)."""
     max_bytes = settings.max_upload_size_mb * 1024 * 1024
-    if size_bytes > max_bytes:
+    if len(file_bytes) > max_bytes:
         raise AppException(
             http_status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             f"File exceeds the {settings.max_upload_size_mb}MB upload limit.",
         )
+    return detect_document_type(filename, file_bytes)
 
 
 async def upload_document(
-    db: AsyncSession, user_id: str, filename: str, mime_type: str, file_bytes: bytes
+    db: AsyncSession, user_id: str, filename: str, file_bytes: bytes
 ) -> Document:
-    validate_upload(filename, mime_type, len(file_bytes))
+    mime_type = validate_upload(filename, file_bytes)
 
     storage_key = upload_file(file_bytes, filename)
 

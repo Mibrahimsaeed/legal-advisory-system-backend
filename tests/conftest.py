@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 _test_db_fd, _test_db_path = tempfile.mkstemp(suffix=".db")
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_test_db_path}"
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-not-for-production")
+os.environ["CORS_ORIGINS"] = "http://localhost:3000"
 
 from app.main import app  # noqa: E402
 from app.dependencies import get_db  # noqa: E402
@@ -31,6 +32,11 @@ from db.session import AsyncSessionLocal, engine  # noqa: E402
 from app.users.models import User  # noqa: E402, F401
 from app.conversations.models import Conversation, Message  # noqa: E402, F401
 from app.documents.models import Document  # noqa: E402, F401
+from app.auth.models import PasswordResetCode  # noqa: E402, F401
+from app.admin.models import AdminAuditLog  # noqa: E402, F401
+from app.generated_docs.models import GeneratedDocument  # noqa: E402, F401
+from app.billing.models import Subscription, Payment, FreeUsage  # noqa: E402, F401
+from app.rag.models import RagDocument  # noqa: E402, F401
 import pytest_asyncio
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -78,3 +84,22 @@ async def auth_headers(client, registered_user):
     response = await client.post("/auth/login", json={"email": email, "password": password})
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def make_user(client):
+    """Factory: registers (and optionally promotes to admin) a user, returns (auth headers, user id)."""
+    from sqlalchemy import update
+
+    async def _make(email: str, admin: bool = False, password: str = "testpassword123"):
+        await client.post("/auth/register", json={"email": email, "password": password, "full_name": "Some Person"})
+        if admin:
+            async with AsyncSessionLocal() as db:
+                await db.execute(update(User).where(User.email == email).values(is_admin=True))
+                await db.commit()
+        login = await client.post("/auth/login", json={"email": email, "password": password})
+        headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+        profile = (await client.get("/users/me", headers=headers)).json()
+        return headers, profile["id"]
+
+    return _make
